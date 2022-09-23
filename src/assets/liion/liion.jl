@@ -44,12 +44,36 @@ function compute_operation_soc_linear(liion::AbstractLiion, state::NamedTuple{(:
 		η = η_ini
 	end
 
-	power_dch = max(min(decision, liion.α_p_dch * Erated, state.soh * Erated / Δh, η * (state.soc * (1. - liion.η_self * Δh) - liion.α_soc_min) * Erated / Δh), 0.)
-	power_ch = min(max(decision, -liion.α_p_ch * Erated, -state.soh * Erated / Δh, (state.soc * (1. - liion.η_self * Δh) - liion.α_soc_max) * Erated / Δh / η), 0.)
+	#power_dch = max(min(decision, liion.α_p_dch * Erated, state.soh * state.Erated / Δh, η * (state.soc * (1. - liion.η_self * Δh) - liion.α_soc_min) * Erated / Δh), 0.)
+	#power_ch = min(max(decision, -liion.α_p_ch * Erated, -state.soh * state.Erated / Δh, (state.soc * (1. - liion.η_self * Δh) - liion.α_soc_max) * Erated / Δh / η), 0.)
+	#without self discharge
+	power_dch, power_ch = get_power_flow(liion, state, decision, Δh)
 
 	#return state.soc * (1. - liion.η_self * Δh) - (power_ch * η + power_dch / η) * Δh / Erated, power_ch + power_dch
 	return state.soc - (power_ch * η + power_dch / η) * Δh / Erated, power_ch + power_dch
  end
+
+
+ function get_power_flow(liion::AbstractLiion, state::NamedTuple{(:Erated, :soc, :soh), Tuple{Float64, Float64, Float64}}, decision::Float64, Δh::Int64)
+	 if liion.couplage.E
+ 	 Erated = state.Erated * state.soh
+ 	else
+ 	 Erated = state.Erated
+ 	end
+
+	η_ini = 0.95   #Fixed (dis)charging efficiency for both BES and EV (0.98)     dans la nomenclature
+
+	if liion.couplage.R
+		η = η_ini - ((1-state.soh)/12)   #(15) simplifié
+	else
+		η = η_ini
+	end
+
+	power_dch = max(min(decision, liion.α_p_dch * Erated, state.soh * state.Erated / Δh, η * (state.soc - liion.α_soc_min) * Erated / Δh), 0.)
+ 	power_ch = min(max(decision, -liion.α_p_ch * Erated, -state.soh * state.Erated / Δh, (state.soc - liion.α_soc_max) * Erated / Δh / η), 0.)
+
+	return power_dch, power_ch
+end
 
 
  function compute_operation_soc_tremblay_dessaint(liion::AbstractLiion, state::NamedTuple{(:Erated, :soc, :soh), Tuple{Float64, Float64, Float64}}, V::Float64, decision::Float64, Δh::Int64)
@@ -71,7 +95,7 @@ function compute_operation_soc_linear(liion::AbstractLiion, state::NamedTuple{(:
      soc_min = liion.α_soc_min
      soc_max = liion.α_soc_max
 
-	 Qnom = state.Erated / (V * liion.tremblay_dessaint_params.Npara * liion.tremblay_dessaint_params.Nserie) # TODO 3.7 en V pour convertir Erated de kWh en Ah
+	 Qnom = state.Erated / (3.7 * liion.tremblay_dessaint_params.Npara * liion.tremblay_dessaint_params.Nserie) # TODO 3.7 en V pour convertir Erated de kWh en Ah
 	 if liion.couplage.E
      	Qnom *= state.soh #TODO faire verifier
 	 end

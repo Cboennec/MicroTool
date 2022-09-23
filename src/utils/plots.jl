@@ -146,7 +146,7 @@ function plot_operation(mg::Microgrid ; y=2, s=1, smooth = false, xdisplay = "ho
 
 
     #voltage
-    if mg.storages[1] isa Liion_rainflow || mg.storages[1] isa Liion_electro_chimique
+    if mg.storages[1].soc_model == "tremblay_dessaint" 
         figure("voltage")
         Seaborn.plot(1:((mg.parameters.ny -1) * (mg.parameters.nh+1) ), vec(mg.storages[1].voltage[:, 2:mg.parameters.ny, s]), label = string("voltage : ", typeof(mg.storages[1])))
         legend()

@@ -68,7 +68,7 @@ mutable struct Liion_rainflow <: AbstractLiion
 		SoH_threshold = 0.8,
 		couplage = (E = true, R = false),
 		soc_model = "linear",
-		calendar = false,
+		calendar = true,
 		Erated_ini = 1e-6,
 		soc_ini = 0.5,
 		soh_ini = 1.,

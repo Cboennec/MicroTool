@@ -140,13 +140,11 @@ function compute_operation_dynamics!(h::Int64, y::Int64, s::Int64, liion::Liion_
 	elseif liion.soc_model == "tremblay_dessaint"
 		liion.soc[h+1,y,s], liion.voltage[h+1,y,s], liion.carrier.power[h,y,s], liion.current[h,y,s] = compute_operation_soc_tremblay_dessaint(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]),  liion.voltage[h,y,s], decision, Δh)
 	elseif  liion.soc_model == "linear"
-		soc_next, power_ch, power_dch = compute_operation_soc_linear(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]), decision, Δh)
-		liion.soc[h+1,y,s] = soc_next
-		liion.carrier.power[h,y,s] = power_ch + power_dch
+		liion.soc[h+1,y,s], liion.carrier.power[h,y,s]  = compute_operation_soc_linear(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]), decision, Δh)
 	end
 
-
-	liion.soh[h+1,y,s], liion.ΔE_tot[s] = compute_operation_soh_vermeer(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]), decision, Δh, liion.soc[h+1,y,s], liion.ΔE_tot[s])
+	liion.soh[h+1,y,s] = liion.soh[h,y,s] - (0.1/8760)
+	#liion.soh[h+1,y,s], liion.ΔE_tot[s] = compute_operation_soh_vermeer(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]), decision, Δh, liion.soc[h+1,y,s], liion.ΔE_tot[s])
 
 end
 

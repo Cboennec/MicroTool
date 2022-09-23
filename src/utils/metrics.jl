@@ -190,7 +190,7 @@ function salvage_value(s::Union{Int64, UnitRange{Int64}}, mg::Microgrid)
     # Storages
     for a in mg.storages
         if a isa AbstractLiion
-            salvage[ny,:] = salvage[ny,:] .+ (a.soh[1,end,s] .- a.SoH_threshold) .* (1-a.SoH_threshold) .* a.cost[ny, s] .* a.Erated[ny,s] # 100% value at 100% SOH, 0% at EOL
+            salvage[ny,:] = salvage[ny,:] .+ ((a.soh[1,end,s] .- a.SoH_threshold) ./ (1 .-a.SoH_threshold)) .* a.cost[ny, s] .* a.Erated[ny,s] # 100% value at 100% SOH, 0% at EOL
             #salvage[ny,:] = salvage[ny,:] .+ a.soh[1,end,s] .* a.cost[ny, s] .* a.Erated[ny,s]
             #$a.soh[end,end,s]$ remplace ici $(a.lifetime .- ny) ./ a.lifetime$ comme indicateur de la fraction de vie restante
         end

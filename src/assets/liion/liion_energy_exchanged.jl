@@ -60,7 +60,7 @@
  		SoH_threshold = 0.8,
  		couplage = (E = true, R = false),
  		soc_model = "linear",
-        calendar = false,
+        calendar = true,
  		Erated_ini = 1e-6,
  		soc_ini = 0.5,
  		soh_ini = 1.,
@@ -99,7 +99,11 @@ function compute_operation_dynamics!(h::Int64, y::Int64, s::Int64, liion::Liion_
     if liion.soc_model == "artificial"
         liion.soh[h+1,y,s] = liion.soh[h,y,s] - (liion.Erated[y,s] * (abs(liion.soc[h+1,y,s] - liion.soc[h,y,s])))  / (2. * liion.nCycle * liion.Erated[y,s] )
     else
-        liion.soc[h+1,y,s], liion.soh[h+1,y,s], liion.carrier.power[h,y,s] = compute_operation_dynamics(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]), decision, Δh)
+        liion.soc[h+1,y,s], liion.carrier.power[h,y,s] = compute_operation_soc_linear(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]), decision, Δh)
+
+    	power_dch, power_ch = get_power_flow(liion, (Erated = liion.Erated[y,s], soc = liion.soc[h,y,s], soh = liion.soh[h,y,s]), decision, Δh)
+
+        liion.soh[h+1,y,s] = liion.soh[h,y,s] - (power_dch - power_ch) * Δh / (2. * liion.nCycle * (liion.α_soc_max - liion.α_soc_min) * liion.Erated[y,s])
     end
 
     #Calendar part
