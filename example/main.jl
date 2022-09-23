@@ -10,7 +10,11 @@ using CSV, DataFrames
 pygui(true)
 
 # Parameters of the simulation
+<<<<<<< HEAD
 const nh, ny, ns = 8760, 15, 2
+=======
+const nh, ny, ns = 8760, 15, 1
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 # Load input data
 data = load(joinpath("example","data","ausgrid_5_twostage.jld"))
@@ -20,6 +24,7 @@ fatigue_data = DataFrames.DataFrame(CSV.File("example\\data\\fatigue_data_NMC.cs
 
 
 
+<<<<<<< HEAD
 #
 # A_n = 1.419e10
 # E_an = 0.9021
@@ -47,6 +52,12 @@ fatigue_data = DataFrames.DataFrame(CSV.File("example\\data\\fatigue_data_NMC.cs
 # η_fade2 = η_ini .- ((SoH)./4)
 #
 # plot(η_fade2)
+=======
+
+
+
+
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 
 
@@ -55,6 +66,7 @@ mg = Microgrid(parameters = GlobalParameters(nh, ny, ns, renewable_share = 1.))
 
 add!(mg, Demand(carrier = Electricity()),
 		  Solar(),
+<<<<<<< HEAD
 		  Liion_electro_chimique(soc_model = "linear", couplage = (E=true, R=true)),
 		  Grid(carrier = Electricity()))
 
@@ -141,6 +153,29 @@ add!(mg1, Demand(carrier = Electricity()),
 			# Plots
 			plot_operation(mg, y=2:ny)
 
+=======
+		  Liion_electro_chimique(update_by_year = 12, soc_model = "linear", couplage= (E=true, R=true)),
+		  Grid(carrier = Electricity()))
+
+
+ω_e = Scenarios(mg, data["ω_optim"], adjust_length=true)
+
+
+	controller = RBC(options = RBCOptions(policy_selection =  2))
+	designer = Manual(generations = [10.], storages = [10.], subscribed_power = [5.])
+
+	designer_ec = initialize_designer!(mg, designer, ω_e)
+	controller_ec = initialize_controller!(mg, controller, ω_e)
+
+
+
+	simulate!(mg, controller_ec, designer_ec, ω_e, options = Genesys.Options(mode = "serial"))
+
+	metrics = Metrics(mg, designer_ec)
+
+	# Plots
+	#plot_operation(mg, y=2:ny)
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 
 
@@ -153,9 +188,15 @@ charging_index1 = (mg.storages[1].soc[2:end-1,1:end-1,1] .- mg.storages[1].soc[3
 charging_index2 =  controller_ec.decisions.storages[1][2:end,:,1] .< 0
 charging_index = charging_index1 .& charging_index2
 
+<<<<<<< HEAD
 figure("efficiency")
 plot(efficiency[charging_index])
 
+=======
+plot(efficiency[charging_index])
+
+plot(1 ./ efficiency[discharging_index])
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 
 

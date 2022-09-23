@@ -80,7 +80,11 @@ for i in 1:nb_profil
 
 
 
+<<<<<<< HEAD
 	ω_e = Scenarios(microgrid_rainflow, data["ω_optim"], same_year=true)
+=======
+	ω_e = Scenarios(microgrid_rainflow, data["ω_optim"], adjust_length=true)
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 
 		controller = RBC(options = RBCOptions(policy_selection =  2))
@@ -101,7 +105,11 @@ for i in 1:nb_profil
 	                Liion_electro_chimique(soc_model = "artificial", couplage = (E=false,R=false), artificial_soc_profil = artif),
 	                Grid(carrier = Electricity()))
 
+<<<<<<< HEAD
 	ω_e = Scenarios(microgrid_ec, data["ω_optim"], same_year=true)
+=======
+	ω_e = Scenarios(microgrid_ec, data["ω_optim"], adjust_length=true)
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 
 	controller = RBC(options = RBCOptions(policy_selection =  2))
@@ -122,7 +130,11 @@ for i in 1:nb_profil
 	                Liion_energy_exchanged(soc_model = "artificial", couplage = (E=false,R=false), artificial_soc_profil = artif, calendar = true, nCycle = fatigue_data.cycle[findfirst(fatigue_data.DoD .> (0.6))]),
 	                Grid(carrier = Electricity()))
 
+<<<<<<< HEAD
 	ω_e = Scenarios(microgrid_lin, data["ω_optim"], same_year=true)
+=======
+	ω_e = Scenarios(microgrid_lin, data["ω_optim"], adjust_length=true)
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 
 	controller = RBC(options = RBCOptions(policy_selection =  2))
@@ -184,8 +196,13 @@ df_pandas = Pandas.DataFrame(Dict("delta_SOH" => delta_SOH, "profile_num" => pro
 
 
 figure("Model comparison on artificial profiles")
+<<<<<<< HEAD
 Seaborn.set_context("paper", rc=Dict("axes.labelsize"=>36, "legend.fontsize"=> 31,  "legend.title_fontsize"=> 31,
 "ytick.labelsize" => 34, "xtick.labelsize" => 34))
+=======
+Seaborn.set_context("paper", rc=Dict("axes.labelsize"=>28, "legend.fontsize"=> 22,  "legend.title_fontsize"=> 28,
+"ytick.labelsize" => 22, "xtick.labelsize" => 22))
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 ax  = Seaborn.catplot(x="profile_num", y="delta_SOH",
 			   hue="model_name",
@@ -193,6 +210,7 @@ ax  = Seaborn.catplot(x="profile_num", y="delta_SOH",
 			   palette="Set2",
 			   height=4, aspect=2.5, legend = false);
 
+<<<<<<< HEAD
 Seaborn.legend(bbox_to_anchor=(.4, .53), title ="Ageing Models")
 
 ax.set_ylabels("Time before EOL (years)")
@@ -200,4 +218,13 @@ ax.set_xlabels("SoC profiles")
 
 for i in 1:(nb_freq-1)
 	axvline(x=(nb_ampl * i) - 0.5, ymin=0, ymax=.56, color="black")
+=======
+Seaborn.legend( loc="upper left", title ="Ageing Models")
+
+ax.set_ylabels("Time before EoL (years)")
+ax.set_xlabels("SoC profiles")
+
+for i in 1:(nb_freq-1)
+	axvline(x=(nb_ampl * i) - 0.5, ymin=0, ymax=1, color="black")
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 end

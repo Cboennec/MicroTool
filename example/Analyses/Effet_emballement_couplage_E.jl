@@ -12,7 +12,11 @@
 
 #hypothèse : lorsque la profondeur des cycles croit elle le fait selon une loi bruité en x^2 du temps
 
+<<<<<<< HEAD
 #Les différences de modèle énergétique sont notables au niveau du rendement, tremblay_dessaint renvoi un rendement plus faibnle ce qui a tendance à préserver la batterie du vieillissement avec des cycles sensiblement aussi nombreux mais moins profond.
+=======
+#Les différence de modèle énergétique sont notables au niveau du rendement, tremblay_dessaint renvoi un rendement plus faibnle ce qui a tendance à préserver la batterie du vieillissement avec des cycles sensiblement aussi nombreux mais moins profond.
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 #Question supplémentaire : qu'en est-il de cet impact sur l'autonomie
 
@@ -27,14 +31,22 @@ using Statistics
 pygui(true)
 
 # Parameters of the simulation
+<<<<<<< HEAD
 const nh, ny, ns = 8760, 8, 1
+=======
+const nh, ny, ns = 8760, 21, 100
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 # Load input data
 data = load(joinpath("example","data","ausgrid_5_twostage.jld"))
 
 #https://www.researchgate.net/figure/Battery-cycle-to-failure-versus-the-DOD-gap-34_fig5_276136726  for data1
 # Modeling of Lithium-Ion Battery Degradation for Cell Life Assessment, Bolun Xu et al. for data 2
+<<<<<<< HEAD
 fatigue_data = DataFrame(CSV.File("example\\data\\fatigue_data_NMC.csv", delim = ",", header = [Symbol("DoD"),Symbol("cycle")], types=Dict(:DoD=>Float64, :cycle=>Float64)))
+=======
+fatigue_data = DataFrame(CSV.File("example\\data\\fatigue_data.csv.csv", delim = ";", header = [Symbol("DoD"),Symbol("cycle")], types=Dict(:DoD=>Float64, :cycle=>Float64)))
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 
 
@@ -43,6 +55,7 @@ mg = Microgrid(parameters = GlobalParameters(nh, ny, ns, renewable_share = 1.))
 #Create microgrid
 add!(mg, Demand(carrier = Electricity()),
                 Solar(),
+<<<<<<< HEAD
                 Liion_electro_chimique(soc_model = "linear"),
                 Grid(carrier = Electricity()))
 
@@ -66,6 +79,15 @@ sizings_tuple = [(pv = sizings[i,1], bat = sizings[i,2], P_sub = sizings[i,3]) f
 
 
 Seaborn.scatter(sizings[:,1], sizings[:,2])
+=======
+                Liion_vermeer(soc_model = "vermeer"),
+                Grid(carrier = Electricity()))
+ω_d = Scenarios(mg, data["ω_optim"], adjust_length=true)
+
+
+
+
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 function get_DoD_seq(soc_profil::Vector{Float64})
 
@@ -151,6 +173,7 @@ function Φ(DoD::Float64, fatigue_data)
 	 return fatigue_data.cycle[index]
 end
 
+<<<<<<< HEAD
 #Initiate dataframe
 df = Pandas.DataFrame(Dict(:SoH=>[], :sizing_num=>[], :DoDs=>[],
  :SoC_moyen=>[], :Cycles=>[], :Fatigue=>[], :SoC_mean=>[],
@@ -225,10 +248,69 @@ for couplage in [(E=false,R=false), (E=true,R=false), (E=false,R=true), (E=true,
 			DoD_seq = get_DoD_seq(vec(mg.storages[1].soc[:,y,1]))
 
 	 		fatigue = 0
+=======
+for bat_size in [10,50,100,150]
+
+	param = [10, bat_size, 2]
+	controller = RBC(options = RBCOptions(policy_selection = 2 ))
+	designer = Manual(generations = [param[1]], storages = [param[2]], subscribed_power = [param[3]])
+
+	battery = Liion_rainflow(update_by_year = 12, soc_model = "linear", fatigue_file_name = "example\\data\\fatigue_data.csv.csv", couplage = (E=true,R=false), SoH_threshold = 0.1)
+
+	mg = Microgrid(parameters = GlobalParameters(nh, ny, ns, renewable_share = 1.))
+
+	#Create microgrid
+	add!(mg, Demand(carrier = Electricity()),
+	                Solar(),
+	                battery,
+	                Grid(carrier = Electricity()))
+
+
+
+	#generate scenarios  #Too many for the moment by the way, the need is different for this study
+
+	designer = initialize_designer!(mg, designer, ω_d)
+	controller = initialize_controller!(mg, controller, ω_d)
+
+	simulate!(mg, controller, designer, ω_d, options = Genesys.Options(mode = "serial", firstyear = false))
+	metrics = Metrics(mg, designer)
+	plot_operation(mg, y=2:ny, xdisplay = "years", ci = true)
+
+
+
+	fatigues = zeros(ns)
+	DoD_mean = zeros(ns)
+	N_cycle = zeros(ns)
+	energie = zeros(ns)
+	RES = zeros(ns)
+
+	years = []
+	scenarios = []
+	DoD_mean_by_years = []
+	N_cycle_by_years = []
+	fatigue_by_year = []
+	energie_by_year = []
+	RES_by_year = []
+
+	DoD_for_rempl = zeros(ny-1)
+	N_cycle_for_rempl = zeros(ny-1)
+	fatigue_dor_rempl = zeros(ny-1)
+	energie_for_rempl = zeros(ny-1)
+	RES_for_rempl = zeros(ny-1)
+
+	for y in 2:ny
+
+		for s in 1:ns
+
+			DoD_seq = get_DoD_seq(vec(mg.storages[1].soc[:,y,s]))
+
+ 		   	fatigue = 0
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
  		   	for i in 1:length(DoD_seq)
  			   	fatigue += 1/(2*Φ(DoD_seq[i], fatigue_data)) #Compute fatigue with phy function applied to all the half cycles DoD factor 2 refer to half cycles
  		   	end
 
+<<<<<<< HEAD
 	 		fatigues[k,y-1] = fatigue
 	 		DoD_mean[k,y-1] = mean(DoD_seq)
 	 		N_cycle[k,y-1] = length(DoD_seq)
@@ -279,10 +361,41 @@ for couplage in [(E=false,R=false), (E=true,R=false), (E=false,R=true), (E=true,
 
 
 
+=======
+ 		   	fatigues[s] = fatigue
+ 		   	DoD_mean[s] = mean(DoD_seq)
+ 		   	N_cycle[s] = length(DoD_seq)
+
+
+			energie[s] = 0
+			for t in 1:(length(vec(mg.storages[1].soc[:,y,s]))-1)
+				energie[s] += abs(mg.storages[1].soc[t,y,s] - mg.storages[1].soc[t+1,y,s]) * bat_size * mg.storages[1].soh[t,y,s]
+			end
+
+			RES[s] = metrics.renewable_share[y,s] * 100
+		end
+
+		years = vcat(years,repeat([y],ns))
+
+		scenarios = vcat(scenarios, [a for a in 1:ns])
+
+	 	DoD_mean_by_years = vcat(DoD_mean_by_years, DoD_mean)
+		N_cycle_by_years = vcat(N_cycle_by_years, N_cycle)
+		fatigue_by_year = vcat(fatigue_by_year, fatigues)
+		energie_by_year = vcat(energie_by_year, energie)
+		RES_by_year = vcat(RES_by_year, RES)
+
+		DoD_for_rempl[y-1] = mean(DoD_mean)
+		N_cycle_for_rempl[y-1] = mean(N_cycle)
+		fatigue_dor_rempl[y-1] = mean(fatigues)
+		energie_for_rempl[y-1] = mean(energie)
+		RES_for_rempl[y-1] = mean(RES)
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
 
 	end
 
 
+<<<<<<< HEAD
 	SoH = repeat(mg.storages[1].soh[1,2:ny,1], inner=Nb_sizing)
 	sizing_num = repeat(1:Nb_sizing,ny-1)
 	couplage = repeat([string(couplage)], Nb_sizing*(ny-1) )
@@ -476,3 +589,89 @@ print( get_battery_lifetime(mg.storages[1]))
 
 
 Seaborn.plot(900:1000, 200 ./(1000:-2:800))
+=======
+
+	df = Pandas.DataFrame(Dict(:Years=>years, :Scenario=>scenarios, :DoDs=>DoD_mean_by_years, :Cycles=>N_cycle_by_years, :Fatigue=>fatigue_by_year, :energie=>energie_by_year, :RES=>RES_by_year ))
+
+
+	remplacement = (mg.storages[1].soh[end,1:ny,1:ns] .< mg.storages[1].SoH_threshold)
+	remplacement  = [sum(remplacement[a,:]) * 200/ns for a in 2:(ny)]
+	df_rempl = Pandas.DataFrame(Dict(:Années=>1:(ny-1), :DoDs=>DoD_for_rempl, :fatigue_by_year => fatigue_dor_rempl, :N_cycle_by_years => N_cycle_for_rempl,:energie=>energie_for_rempl, :remplacement=>remplacement, :RES=>RES_for_rempl))
+	df2_rempl = query(df_rempl, :(remplacement>0))# or query(df3, "income>85")
+	df2_rempl[:Années] = df2_rempl[:Années].+1
+
+	x_ticks_lab = [string(n) for n in 1:(ny-1)]
+	x_ticks = [n for n in 2:(ny)]
+
+
+	figure("Mean DoD evolution over years")
+	plotDoD = Seaborn.lineplot(data=df, x="Years", y="DoDs", linewidth = 2, ci = 95)
+	xlabel("Années")
+	ylabel("DoD moyen")
+	Seaborn.scatter(data=df2_rempl, x="Années", y="DoDs", marker="^", color = "red", s=:remplacement)
+	legend([string("Erated = ", 10 , " kWh"), string("Erated = ", 50 , " kWh"), string("Erated = ", 100 , " kWh"),string("Erated = ", 150 , " kWh"), "CI 95/5" , string("Rempl. Batterie")], loc = 3)
+	plotDoD.set_xticks(x_ticks)
+	plotDoD.set_xticklabels(x_ticks_lab)
+
+	figure("Number of cycle evolution over year")
+	plotCycle = Seaborn.lineplot(data=df, x="Years", y="Cycles", linewidth = 2, ci = 95)
+	xlabel("Années")
+	ylabel("Cycles/an")
+	Seaborn.scatter(data=df2_rempl, x="Années", y="N_cycle_by_years", marker="^", color = "red", s=:remplacement)
+	legend([string("Erated = ", 10 , " kWh"), string("Erated = ", 50 , " kWh"), string("Erated = ", 100 , " kWh"),string("Erated = ", 150 , " kWh"), "CI 95/5" , string("Rempl. Batterie")], loc = 3)
+	plotCycle.set_xticks(x_ticks)
+	plotCycle.set_xticklabels(x_ticks_lab)
+
+	figure("Fatigue over years")
+	plotCycle = Seaborn.lineplot(data=df, x="Years", y="Fatigue", linewidth = 2, ci = 95)
+	xlabel("Années")
+	ylabel("Fatigue (perte de SoH)")
+	Seaborn.scatter(data=df2_rempl, x="Années", y="fatigue_by_year", marker="^", color = "red", s=:remplacement)
+	legend([string("Erated = ", 10 , " kWh"), string("Erated = ", 50 , " kWh"), string("Erated = ", 100 , " kWh"),string("Erated = ", 150 , " kWh"), "CI 95/5" , string("Rempl. Batterie")], loc = 3)
+	plotCycle.set_xticks(x_ticks)
+	plotCycle.set_xticklabels(x_ticks_lab)
+
+	figure("Energy exchanged over years")
+	plotEE = Seaborn.lineplot(data=df, x="Years", y="energie", linewidth = 2, ci = 95)
+	xlabel("Années")
+	ylabel("Energie echangée (kWh)")
+	Seaborn.scatter(data=df2_rempl, x="Années", y="energie", marker="^", color = "red", s=:remplacement)
+	legend([string("Erated = ", 10 , " kWh"), string("Erated = ", 50 , " kWh"), string("Erated = ", 100 , " kWh"),string("Erated = ", 150 , " kWh"), "CI 95/5" , string("Rempl. Batterie")], loc = 3)
+	plotEE.set_xticks(x_ticks)
+	plotEE.set_xticklabels(x_ticks_lab)
+
+
+	figure("Autonomie over years")
+	plotRES = Seaborn.lineplot(data=df, x="Years", y="RES", linewidth = 2, ci = 95)
+	xlabel("Années")
+	ylabel("Autonomie energétique (%)")
+	Seaborn.scatter(data=df2_rempl, x="Années", y="RES", marker="^", color = "red", s=:remplacement)
+	legend([string("Erated = ", 10 , " kWh"), string("Erated = ", 50 , " kWh"), string("Erated = ", 100 , " kWh"),string("Erated = ", 150 , " kWh"), "CI 95/5" , string("Rempl. Batterie")], loc = 3)
+	plotRES.set_xticks(x_ticks)
+	plotRES.set_xticklabels(x_ticks_lab)
+
+
+	# PyPlot.plot(N_cycle_by_years)
+	# xlabel("Years")
+	# ylabel("Number of cycle")
+	# legend([string("bat = ", 10 , " kWh"),string("bat = ", 50 , " kWh"),string("bat = ", 150 , " kWh"),string("bat = ", 300 , " kWh"), string("bat = ", 300 , " kWh, threshhold 0.8")], loc = 3)
+	# figure("DoD over years")
+	# PyPlot.plot(DoD_mean_by_years)
+	# legend([string("bat = ", 10 , " kWh"),string("bat = ", 50 , " kWh"),string("bat = ", 150 , " kWh"),string("bat = ", 300 , " kWh"), string("bat = ", 300 , " kWh, threshhold 0.8")], loc = 3)
+	# figure("fatigue over years")
+	# PyPlot.plot(fatigue_by_year)
+	# legend([string("bat = ", 10 , " kWh"),string("bat = ", 50 , " kWh"),string("bat = ", 150 , " kWh"),string("bat = ", 300 , " kWh"), string("bat = ", 300 , " kWh, threshhold 0.8")], loc = 3)
+	#
+
+
+
+	print( get_battery_lifetime(mg.storages[1]))
+
+
+	#df2 = Pandas.DataFrame(Dict(:years=>(2:ny), :Fatigue_mean=>fatigue_by_year))
+
+
+	#lmplot(x="years", y="Fatigue_mean", data=df2[1:(get_battery_lifetime(mg.storages[1])-2)], order =2);
+	#lmplot(x="years", y="DoD_med", data=df, order =2);
+end
+>>>>>>> dd78f0dbf20b60c5bb4bd9f6bee9b20e853be8a5
